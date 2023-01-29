@@ -1,6 +1,5 @@
 # Junit_test
 Junit test cases in Java using Maven build tool
-<<<<<<< HEAD
 =======
 
 How to run the project
@@ -19,9 +18,9 @@ BUILD SUCCESS!
 
 Explanation:
 
-1) You have a simple "" Java class which will return a value Hello World string. This is defined in the /src/test/java folder
+1) You have a simple "HelloWorld" Java class which will return a value Hello World string. This is defined in the /src/test/java folder
 
-2) A "" java class with a test case is also present in the same folder and this is written in junit test case format
+2) A "HelloWorldTest" java class with a test case is also present in the same folder and this is written in junit test case format
 
 3) Now since we have the code and know what technologies are involved, we have to make sure that the dependencies are mentioned in the pom.xml file. 
 
@@ -38,4 +37,4 @@ build dependencies:
 BAZINGA..!! BUILD SUCCESS..!!
 
 Happy coding..!
->>>>>>> origin/master
+
