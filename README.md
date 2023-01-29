@@ -1,3 +1,8 @@
+The shell.c is your shell file in C code. Compile it using gcc shell.c command to get an executable and then use "./<output file/compiled file>" generally (./a.out) to run your intetactive shell 
+
+**Note: this is just the barebone code, somee changes to be done.**
+
+
 # Junit_test
 Junit test cases in Java using Maven build tool
 =======
