@@ -12,42 +12,41 @@ int main(int argc, char *argv[])
     int should_run = 1; /* flag to determine when to exit program */
 
     while (should_run) {
-        printf("SHELL$ ");
+        printf("osh> ");
         fflush(stdout);
 
         char input[MAX_LINE];
         fgets(input, MAX_LINE, stdin);
         input[strcspn(input, "\n")] = 0; // remove newline character
 
-        int i = 0;
-        char *token = strtok(input, ";");
-        while (token != NULL) {
-            args[i] = strtok(token, " ");
-            int j = 1;
+        char *command = strtok(input, ";");
+        while (command != NULL) {
+            int i = 0;
+            args[i] = strtok(command, " ");
             while (args[i] != NULL) {
-                args[i + j] = strtok(NULL, " ");
-                j++;
+                i++;
+                args[i] = strtok(NULL, " ");
             }
-            i = i + j;
 
-            pid_t pid = fork();
-            if (pid < 0) {
-                printf("Fork failed\n");
-                exit(1);
-            } else if (pid == 0) {
-                if (execvp(args[0], args) < 0) {
-                    printf("Error: command not found\n");
+            if (strcmp(args[0], "exit") == 0) {
+                should_run = 0;
+                break;
+            } else {
+                pid_t pid = fork();
+                if (pid < 0) {
+                    printf("Fork failed\n");
                     exit(1);
+                } else if (pid == 0) {
+                    if (execvp(args[0], args) < 0) {
+                        printf("Error: command not found\n");
+                        exit(1);
+                    }
+                } else {
+                    wait(NULL);
                 }
             }
-
-            token = strtok(NULL, ";");
+            command = strtok(NULL, ";");
         }
-
-        // Wait for all child processes to finish
-        int status;
-        pid_t pid;
-        while ((pid = wait(&status)) > 0);
     }
 
     return 0;
