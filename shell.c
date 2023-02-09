@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
     int should_run = 1; /* flag to determine when to exit program */
 
     while (should_run) {
-        printf("osh> ");
+        printf("SHELL$ ");
         fflush(stdout);
 
         char input[MAX_LINE];
