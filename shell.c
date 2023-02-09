@@ -1,91 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/wait.h>
 
-#define MAX_LINE 512 /* The maximum length command */
-#define MAX_ARGS 10 /* The maximum number of arguments */
-
-void error_message(char *message) {
-    fprintf(stderr, "%s\n", message);
-    exit(1);
-}
+#define MAX_LINE 80 /* The maximum length command */
+#define MAX_COMMANDS 10 /* The maximum number of commands */
 
 int main(int argc, char *argv[])
 {
-    char input[MAX_LINE];
-    char *args[MAX_ARGS];
+    char *commands[MAX_COMMANDS][MAX_LINE/2 + 1]; /* commands */
+    int should_run = 1; /* flag to determine when to exit program */
 
-    if (argc > 2) {
-        error_message("Error: incorrect number of command line arguments");
-    }
+    while (should_run) {
+        printf("osh> ");
+        fflush(stdout);
 
-    FILE *fp;
-    if (argc == 2) {
-        fp = fopen(argv[1], "r");
-        if (fp == NULL) {
-            error_message("Error: batch file does not exist or cannot be opened");
-        }
-    }
+        char input[MAX_LINE];
+        fgets(input, MAX_LINE, stdin);
+        input[strcspn(input, "\n")] = 0; // remove newline character
 
-    while (1) {
+        int i = 0;
         int background = 0;
-        int i;
-        int should_run = 1;
+        char *command = strtok(input, ";");
+        while (command != NULL && i < MAX_COMMANDS) {
+            int j = 0;
+            commands[i][j] = strtok(command, " ");
+            while (commands[i][j] != NULL) {
+                j++;
+                commands[i][j] = strtok(NULL, " ");
+            }
+            if (strcmp(commands[i][j-1], "&") == 0) {
+                background = 1;
+                commands[i][j-1] = NULL;
+            }
+            i++;
+            command = strtok(NULL, ";");
+        }
 
-        if (argc == 1) {
-            printf("SHELL$ ");
-            fflush(stdout);
-            if (fgets(input, MAX_LINE, stdin) == NULL) {
+        for (int k = 0; k < i; k++) {
+            if (strcmp(commands[k][0], "exit") == 0) {
+                should_run = 0;
                 break;
             }
-        } else {
-            if (fgets(input, MAX_LINE, fp) == NULL) {
-                break;
-            }
-        }
 
-        int length = strlen(input);
-        if (length > MAX_LINE) {
-            error_message("Error: very long command line");
-        } else if (length == 1) {
-            continue;
-        }
-
-        // remove trailing newline character
-        input[strcspn(input, "\n")] = 0;
-
-        // check for '&' at the end of the line
-        if (input[length - 1] == '&') {
-            background = 1;
-            input[length - 1] = 0;
-        }
-
-        // tokenize the input into arguments
-        args[0] = strtok(input, " ");
-        for (i = 1; i < MAX_ARGS; i++) {
-            args[i] = strtok(NULL, " ");
-            if (args[i] == NULL) {
-                break;
-            }
-        }
-
-        if (strcmp(args[0], "quit") == 0) {
-            break;
-        }
-
-        pid_t pid = fork();
-        if (pid < 0) {
-            error_message("Error: fork failed");
-        } else if (pid == 0) {
-            if (execvp(args[0], args) < 0) {
-                fprintf(stderr, "Error: command not found or cannot be executed\n");
+            pid_t pid = fork();
+            if (pid < 0) {
+                fprintf(stderr, "Fork failed\n");
                 exit(1);
-            }
-        } else {
-            if (!background) {
-                wait(NULL);
+            } else if (pid == 0) {
+                if (execvp(commands[k][0], commands[k]) < 0) {
+                    fprintf(stderr, "Error: command not found\n");
+                    exit(1);
+                }
+            } else {
+                if (!background) {
+                    wait(NULL);
+                }
             }
         }
     }
